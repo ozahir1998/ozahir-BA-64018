@@ -1,0 +1,118 @@
+---
+title: "LP Problem"
+author: "Osama Bin Zahir"
+date: "2023-09-25"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Writing Linear Programming Problem
+
+# Objective
+# Max = 420(Al + Bl + Cl) + 360(Am + Bm + Cm) + 300(As + Bs + Cs)
+
+# Production Constraint
+# Al + Am + As <= 750
+# Bl + Bm + Bs <= 900
+# Cl + Cm + Cs <= 450
+
+# Storage Constraint
+# 20Al + 15Am + 12As <= 13000
+# 20Bl + 15Bm + 12Bs <= 12000
+# 20Cl + 15Cm + 12Cs <= 5000
+
+# Sales Constraint
+# Al + Bl + Cl <= 900
+# Am + Bm + Cm <= 1200
+# As + Bs + Cs <= 750
+
+# Same Ratio Constraint
+# Al + Am + As / 750 = Bl + Bm + Bs / 900 = Cl + Cm + Cs / 450
+
+# Loading required libraries
+
+```{r}
+library(lpSolve)
+```
+
+# Coefficients and constraint matrix 
+
+```{r}
+coeff = c(420,360,300,420,360,300,420,360,300)
+
+mat = matrix(c(1, 0, 0, 1, 0, 0, 1, 0, 0,
+                 0, 1, 0, 0, 1, 0, 0, 1, 0,
+                 0, 0, 1, 0, 0, 1, 0, 0, 1,
+                 1, 1, 1, 0, 0, 0, 0, 0, 0,
+                 0, 0, 0, 1, 1, 1, 0, 0, 0,
+                 0, 0, 0, 0, 0, 0, 1, 1, 1,
+                 20, 15, 12, 0, 0, 0, 0, 0, 0,
+                 0, 0, 0, 20, 15, 12, 0, 0, 0,
+                 0, 0, 0, 0, 0, 0, 20, 15, 12,
+                 900, 900, 900, -750, -750, -750, 0, 0, 0,
+                 0, 0, 0, 450, 450, 450, -900, -900, -900,
+                 450, 450, 450, 0, 0, 0, -750, -750, -750),
+               nrow=12,
+               byrow=TRUE)
+```
+
+# Directions of constraints and RHS constraints
+
+```{r}
+dir = c("<=","<=","<=","<=","<=","<=","<=","<=","<=","=","=","=")
+
+RHS = c(900,1200,750,750,900,450,13000,12000,5000,0,0,0)
+
+```
+
+# Solving the problem
+
+```{r}
+X = lp("max", coeff, mat, dir, RHS)
+```
+
+# Displaying output values
+
+```{r}
+cat("Optimal Profit (P):\n")
+print(X$objval)
+
+cat("Optimal Solution (Al, Am, As, Bl, Bm, Bs, Cl, Cm, Cs):\n")
+X$solution[1]
+X$solution[2]
+X$solution[3]
+X$solution[4]
+X$solution[5]
+X$solution[6]
+X$solution[7]
+X$solution[8]
+X$solution[9]
+
+```
+# Quantity of products to be manufactured at Plant Al, Am, As:
+
+# Plant 1:
+#    Al = 516.6667
+#    Am = 177.7778
+#    As = 0
+
+# Quantity of products to be manufactured at Plant Bl, Bm, Bs:
+
+# Plant 2:
+
+#    Bl = 0
+#    Bm = 666.6667
+#    Bs = 166.6667
+
+# Quantity of products to be manufactured at Plant Cl, Cm, Cs:
+
+# Plant 3:
+
+#    Cl = 0
+#    Cm = 0
+#    Cs = 416.6667
