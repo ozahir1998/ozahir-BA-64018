@@ -1,0 +1,85 @@
+---
+title: 'Assignment #3'
+author: "Osama Bin Zahir"
+date: "2023-10-15"
+output:
+  html_document:
+    df_print: paged
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Transportation Problem
+```{r}
+# Generating a table to present information about production expenses, shipping charges, as well as the demands and limitations related to supply as well as adding a dummy warehouse column to make the problem balanced (demand = supply)
+
+# Creating a table with Dummy Warehouse
+
+library(kableExtra)
+library(lpSolve)
+library(lpSolveAPI)
+
+MAT<-matrix(c("$22","$14","$30","$0", "$600",100,
+ "$16","$20","$24","$0", "$625",120,
+ 80,60,70,10,"-","220"),ncol = 6,byrow = TRUE)
+colnames(MAT)<-c("Warehouse1","Warehouse2","Warehouse3","Dummy","Production Cost","Production Capacity")
+rownames(MAT)<-c("Plant A","Plant B","Monthly Demand")
+MAT<-as.table(MAT)
+```
+
+```{r}
+MAT%>%
+ kable()%>%
+ kable_classic()%>%
+ column_spec(2,border_left = TRUE) %>% 
+ column_spec(6,border_left = TRUE)%>%
+ row_spec(3,extra_css = "border-bottom:dotted;")
+```
+
+#Formulating the transportation problem
+#Minimum Transportation Cost = 622X11 + 614X12 + 630X13 + 0X14 + 641X21 + 645X22 + 649X23 + 0X24
+
+#Supply Constraints
+#For Plant A: X11 + X12 + X13 + X14 ≤ 100
+#For Plant B: X11 + X12 + X13 + X14 ≤ 120
+
+#Demand Constraints
+#Warehouse1: X11 + X21 + X31 ≥ 80
+#Warehouse2: X12 + X22 + X32 ≥ 60
+#Warehouse3: X13 + X23 + X33 ≥ 70
+
+#Non-negativity constraint: Xij ≥ 0 where i = 1, 2 and j = 1, 2, 3, 4
+
+# Solving the transportation problem
+
+```{r}
+trans_<-matrix(c(622,614,630,0,
+                    641,645,649,0)
+,ncol = 4,byrow = TRUE)
+
+#Assigning the row signs and row values
+
+row.signs <- rep("<=",2)
+row.rhs <- c(100,120)
+
+#Assigning the column signs and column values
+
+col.signs <- rep(">=",4)
+col.rhs <- c(80,60,70,10)
+
+#Solving the problem
+
+lptrans <- lp.transport(trans_,"min", row.signs,row.rhs,col.signs,col.rhs)
+
+#Finding Solutions
+
+lptrans$solution
+
+#Finding the minimum transportation cost
+
+lptrans$objval
+```
+#The solution indicates that for Plant A, 0 units to Warehouse 1, 60 units should be allocated to Warehouse 2 and 40 units to Warehouse 3, with no units sent to the Dummy Warehouse. For Plant B, 80 units should be directed to Warehouse 1, with no units going to Warehouse 2, 30 units to Warehouse 3, and 10 units to the Dummy.This results in a total minimum transportation cost, which encompasses both production and shipping expenses, amounting to $132,790. This approach determines the optimal production quantities at each plant and their distribution to minimize expenses while fulfilling all demand requirements within the given production capacity limits.
